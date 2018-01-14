@@ -5,6 +5,8 @@
         <attr name="numberPickerPreferenceStyle" format="reference" />
         <!-- Default style for TimePickerPreference -->
         <attr name="timePickerPreferenceStyle" format="reference" />
+        <!-- Default style for DatePickerPreference -->
+        <attr name="datePickerPreferenceStyle" format="reference" />
     </declare-styleable>
 
     <declare-styleable name="NumberPickerPreference">

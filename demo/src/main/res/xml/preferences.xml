@@ -36,7 +36,7 @@
         <DatePickerPreference
             android:key="date_picker_1"
             android:title="A date picker"
-            />
+            app:dateAsSummary="true"/>
         <EditTextPreference
             android:defaultValue=""
             android:key="edit_text"

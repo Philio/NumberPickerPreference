@@ -7,10 +7,17 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 
+import org.joda.time.Days;
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import me.philio.preferencecompatextended.R;
 
@@ -21,6 +28,10 @@ public class DatePickerPreference extends DialogPreference {
   public static final int DATE_FORMAT_INHERIT = 0;
   public static final int DATE_FORMAT_MONTH_DAY_YEAR = 1;
   public static final int DATE_FORMAT_DAY_MONTH_YEAR = 2;
+
+  private static LocalDate EPOCH = new LocalDate(1970, 1, 1);
+  private static DateTimeFormatter MONTH_DAY_YEAR_FORAMT = DateTimeFormat.forPattern("MMM d YYYY");
+  private static DateTimeFormatter DAY_MONTH_YEAR_FORAMT = DateTimeFormat.forPattern("d MMM YYYY");
 
   private boolean dateAsSummary;
   private int dateFormat;
@@ -41,39 +52,36 @@ public class DatePickerPreference extends DialogPreference {
   }
 
   public DatePickerPreference(Context context, AttributeSet attrs, int defStyleAttr) {
-    super(context, attrs, defStyleAttr);
+    this(context, attrs, defStyleAttr, 0);
   }
 
   public DatePickerPreference(Context context, AttributeSet attrs) {
-    super(context, attrs);
+    this(context, attrs, R.attr.datePickerPreferenceStyle);
   }
 
   public DatePickerPreference(Context context) {
-    super(context);
+    this(context, null);
   }
 
   public static int calculateValue(int year, int monthOfYear, int dayOfMonth) {
-    Calendar cal = Calendar.getInstance();
-    cal.set(year, monthOfYear, dayOfMonth);
-    return (int) cal.getTimeInMillis() / 1000;
+    LocalDate date = new LocalDate(year, monthOfYear, dayOfMonth);
+    return Days.daysBetween(EPOCH, date).getDays();
+  }
+
+  private LocalDate getDate() {
+    return EPOCH.plusDays(value);
   }
 
   public int getYear() {
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(new Date(value));
-    return cal.get(Calendar.YEAR);
+    return getDate().getYear();
   }
 
   public int getMonthOfYear() {
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(new Date(value));
-    return cal.get(Calendar.MONTH);
+    return getDate().getMonthOfYear();
   }
 
   public int getDayOfMonth() {
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(new Date(value));
-    return cal.get(Calendar.DAY_OF_MONTH);
+    return getDate().getDayOfMonth();
   }
 
   public void setValue(int year, int monthOfYear, int dayOfMonth) {
@@ -83,22 +91,22 @@ public class DatePickerPreference extends DialogPreference {
   public void setValue(int value) {
     this.value = value;
     if (dateAsSummary) {
-      DateFormat format;
+      DateTimeFormatter formatter;
       switch (dateFormat) {
         case DATE_FORMAT_MONTH_DAY_YEAR:
-          format = new SimpleDateFormat("MMM d YYYY");
+          formatter = MONTH_DAY_YEAR_FORAMT;
           break;
         case DATE_FORMAT_DAY_MONTH_YEAR:
-          format = new SimpleDateFormat("d MMM YYYY");
+          formatter = DAY_MONTH_YEAR_FORAMT;
           break;
         case DATE_FORMAT_INHERIT:
         default:
-          format = getTimeFormat(getContext());
+          formatter = DAY_MONTH_YEAR_FORAMT;
+          // TODO: fix
+          //formatter = getTimeFormat(getContext());
           break;
       }
-      Date date = new Date(value * 1000);
-      String time = format.format(date);
-      setSummary(time);
+      setSummary(formatter.print(getDate()));
     }
     persistInt(value);
   }
@@ -107,9 +115,7 @@ public class DatePickerPreference extends DialogPreference {
   protected Object onGetDefaultValue(TypedArray a, int index) {
     int defaultValue = 0;
     if (defaultYear > -1 && defaultMonthOfYear > -1 && defaultDayOfMonth > -1) {
-      Calendar cal = Calendar.getInstance();
-      cal.set(defaultYear, defaultMonthOfYear, defaultDayOfMonth);
-      defaultValue = (int) cal.getTimeInMillis() / 1000;
+      defaultValue = calculateValue(defaultYear, defaultMonthOfYear, defaultDayOfMonth);
     }
     return a.getInt(index, defaultValue);
   }
