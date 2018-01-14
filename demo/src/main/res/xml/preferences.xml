@@ -33,6 +33,10 @@
             app:defaultHours="10"
             app:defaultMins="0"
             app:timeAsSummary="true"/>
+        <DatePickerPreference
+            android:key="date_picker_1"
+            android:title="A date picker"
+            />
         <EditTextPreference
             android:defaultValue=""
             android:key="edit_text"
