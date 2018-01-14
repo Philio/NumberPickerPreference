@@ -38,4 +38,16 @@
             <enum name="hours24" value="2" />
         </attr>
     </declare-styleable>
+
+    <declare-styleable name="DatePickerPreference">
+        <attr name="dateAsSummary" format="boolean" />
+        <attr name="defaultYear" format="integer" />
+        <attr name="defaultMonthOfYear" format="integer" />
+        <attr name="defaultDayOfMonth" format="integer" />
+        <attr name="dateFormat" format="enum">
+            <enum name="inherit" value="0" />
+            <enum name="dayMonthYear" value="1" />
+            <enum name="monthDayYear" value="2" />
+        </attr>
+    </declare-styleable>
 </resources>

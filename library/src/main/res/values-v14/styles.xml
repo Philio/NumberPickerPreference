@@ -14,4 +14,8 @@
         <item name="android:layout">@layout/preference_material</item>
     </style>
 
+    <style name="Preference.DialogPreference.DatePickerPreference.Material">
+        <item name="android:layout">@layout/preference_material</item>
+    </style>
+
 </resources>
