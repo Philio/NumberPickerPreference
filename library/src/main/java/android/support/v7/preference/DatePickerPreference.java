@@ -23,6 +23,7 @@ public class DatePickerPreference extends DialogPreference {
   public static final int DATE_FORMAT_INHERIT = 0;
   public static final int DATE_FORMAT_MONTH_DAY_YEAR = 1;
   public static final int DATE_FORMAT_DAY_MONTH_YEAR = 2;
+  public static final int DATE_FORMAT_CUSTOM = 3;
 
   private static LocalDate EPOCH = new LocalDate(1970, 1, 1);
   private static DateTimeFormatter MONTH_DAY_YEAR_FORAMT = DateTimeFormat.forPattern("MMM d YYYY");
@@ -35,6 +36,7 @@ public class DatePickerPreference extends DialogPreference {
   private int defaultYear;
   private int defaultYearsAgo;
   private int value;
+  private DateTimeFormatter customFormatter;
 
   public DatePickerPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
     super(context, attrs, defStyleAttr, defStyleRes);
@@ -45,7 +47,17 @@ public class DatePickerPreference extends DialogPreference {
     defaultYear = typedArray.getInt(R.styleable.DatePickerPreference_defaultYear, -1);
     defaultMonthOfYear = typedArray.getInt(R.styleable.DatePickerPreference_defaultMonthOfYear, -1);
     defaultDayOfMonth = typedArray.getInt(R.styleable.DatePickerPreference_defaultDayOfMonth, -1);
+    if (defaultYearsAgo > -1 || defaultYear > -1 && defaultMonthOfYear > -1 && defaultDayOfMonth > -1) {
+      setDefaultValue(calculateValue(getDefaultDate()));
+    }
     dateFormat = typedArray.getInt(R.styleable.DatePickerPreference_dateFormat, DATE_FORMAT_INHERIT);
+    if (dateFormat == DATE_FORMAT_CUSTOM) {
+      String customFormat = typedArray.getString(R.styleable.DatePickerPreference_dateFormatString);
+      if (customFormat == null || customFormat.isEmpty()) {
+        throw new IllegalArgumentException("dateFormatString required for custom formats");
+      }
+      customFormatter = DateTimeFormat.forPattern(customFormat);
+    }
     typedArray.recycle();
   }
 
@@ -95,6 +107,8 @@ public class DatePickerPreference extends DialogPreference {
         case DATE_FORMAT_DAY_MONTH_YEAR:
           setSummary(DAY_MONTH_YEAR_FORAMT.print(getDate()));
           break;
+        case DATE_FORMAT_CUSTOM:
+          setSummary(customFormatter.print(getDate()));
         case DATE_FORMAT_INHERIT:
         default:
           Date date = getDate().toDateTimeAtStartOfDay().toDate();
@@ -105,20 +119,20 @@ public class DatePickerPreference extends DialogPreference {
     persistInt(value);
   }
 
-  @Override
-  protected Object onGetDefaultValue(TypedArray a, int index) {
+  private LocalDate getDefaultDate() {
     if (defaultYear > -1 && defaultYearsAgo > -1) {
       throw new IllegalArgumentException("Cannot specify both defaultYear and defaultYearsAgo");
     }
-    int defaultValue = 0;
-    if (defaultYear > -1 && defaultMonthOfYear > -1 && defaultDayOfMonth > -1) {
-      LocalDate defaultDate = new LocalDate(defaultYear, defaultMonthOfYear + 1, defaultDayOfMonth);
-      defaultValue = calculateValue(defaultDate);
-    } else if (defaultYearsAgo > -1) {
-      LocalDate defaultDate = LocalDate.now().minusYears(defaultYearsAgo);
-      defaultValue = calculateValue(defaultDate);
+    if (defaultYearsAgo > -1) {
+      return LocalDate.now().minusYears(defaultYearsAgo);
+    } else {
+      return new LocalDate(defaultYear, defaultMonthOfYear + 1, defaultDayOfMonth);
     }
-    return a.getInt(index, defaultValue);
+  }
+
+  @Override
+  protected Object onGetDefaultValue(TypedArray a, int index) {
+    return a.getInt(index, calculateValue(getDefaultDate()));
   }
 
   @Override
