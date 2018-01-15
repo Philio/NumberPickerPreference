@@ -5,6 +5,8 @@
         <attr name="numberPickerPreferenceStyle" format="reference" />
         <!-- Default style for TimePickerPreference -->
         <attr name="timePickerPreferenceStyle" format="reference" />
+        <!-- Default style for DatePickerPreference -->
+        <attr name="datePickerPreferenceStyle" format="reference" />
     </declare-styleable>
 
     <declare-styleable name="NumberPickerPreference">
@@ -37,5 +39,20 @@
             <enum name="hours12" value="1" />
             <enum name="hours24" value="2" />
         </attr>
+    </declare-styleable>
+
+    <declare-styleable name="DatePickerPreference">
+        <attr name="dateAsSummary" format="boolean" />
+        <attr name="defaultYearsAgo" format="integer" />
+        <attr name="defaultYear" format="integer" />
+        <attr name="defaultMonthOfYear" format="integer" />
+        <attr name="defaultDayOfMonth" format="integer" />
+        <attr name="dateFormat" format="enum">
+            <enum name="inherit" value="0" />
+            <enum name="dayMonthYear" value="1" />
+            <enum name="monthDayYear" value="2" />
+            <enum name="custom" value="3" />
+        </attr>
+        <attr name="dateFormatString" format="string" />
     </declare-styleable>
 </resources>

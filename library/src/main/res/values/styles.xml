@@ -12,4 +12,6 @@
 
     <style name="Preference.DialogPreference.TimePickerPreference"/>
 
+    <style name="Preference.DialogPreference.DatePickerPreference"/>
+
 </resources>
