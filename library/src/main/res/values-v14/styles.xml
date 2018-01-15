@@ -4,6 +4,7 @@
     <style name="PreferenceTheme" parent="PreferenceThemeOverlay.v14.Material">
         <item name="numberPickerPreferenceStyle">@style/Preference.DialogPreference.NumberPickerPreference.Material</item>
         <item name="timePickerPreferenceStyle">@style/Preference.DialogPreference.TimePickerPreference.Material</item>
+        <item name="datePickerPreferenceStyle">@style/Preference.DialogPreference.DatePickerPreference.Material</item>
     </style>
 
     <style name="Preference.DialogPreference.NumberPickerPreference.Material">

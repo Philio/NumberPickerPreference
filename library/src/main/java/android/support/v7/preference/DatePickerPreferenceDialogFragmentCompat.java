@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.widget.DatePicker;
 
+import org.joda.time.LocalDate;
+
 /**
  * Created by parkeroth on 1/14/18.
  */
@@ -24,8 +26,9 @@ public class DatePickerPreferenceDialogFragmentCompat extends PreferenceDialogFr
   @Override
   public void onDateSet(DatePicker datePicker, int year, int monthOfYear, int dayOfMonth) {
     DatePickerPreference preference = (DatePickerPreference) getPreference();
-    if (preference.callChangeListener(DatePickerPreference.calculateValue(year, monthOfYear, dayOfMonth))) {
-      preference.setValue(year, monthOfYear, dayOfMonth);
+    LocalDate date = new LocalDate(year, monthOfYear + 1, dayOfMonth);
+    if (preference.callChangeListener(DatePickerPreference.calculateValue(date))) {
+      preference.setValue(date);
     }
   }
 
@@ -38,6 +41,6 @@ public class DatePickerPreferenceDialogFragmentCompat extends PreferenceDialogFr
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     DatePickerPreference preference = (DatePickerPreference) getPreference();
-    return new DatePickerDialog(getActivity(), this, preference.getYear(), preference.getMonthOfYear(), preference.getDayOfMonth());
+    return new DatePickerDialog(getActivity(), this, preference.getYear(), preference.getMonthOfYear() - 1, preference.getDayOfMonth());
   }
 }

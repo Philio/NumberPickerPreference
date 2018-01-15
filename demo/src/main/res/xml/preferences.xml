@@ -37,6 +37,12 @@
             android:key="date_picker_1"
             android:title="A date picker"
             app:dateAsSummary="true"/>
+        <DatePickerPreference
+            android:key="date_picker_2"
+            android:title="Another date picker"
+            app:dateFormat="dayMonthYear"
+            app:defaultYearsAgo="25"
+            app:dateAsSummary="true"/>
         <EditTextPreference
             android:defaultValue=""
             android:key="edit_text"

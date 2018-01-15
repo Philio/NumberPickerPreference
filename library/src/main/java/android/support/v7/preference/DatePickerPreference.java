@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.format.DateFormat;
 import android.util.AttributeSet;
 
 import org.joda.time.Days;
@@ -12,16 +13,10 @@ import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
 
 import me.philio.preferencecompatextended.R;
 
-import static android.text.format.DateFormat.getTimeFormat;
 
 public class DatePickerPreference extends DialogPreference {
 
@@ -38,6 +33,7 @@ public class DatePickerPreference extends DialogPreference {
   private int defaultDayOfMonth;
   private int defaultMonthOfYear;
   private int defaultYear;
+  private int defaultYearsAgo;
   private int value;
 
   public DatePickerPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
@@ -45,10 +41,12 @@ public class DatePickerPreference extends DialogPreference {
 
     TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.DatePickerPreference, defStyleAttr, defStyleRes);
     dateAsSummary = typedArray.getBoolean(R.styleable.DatePickerPreference_dateAsSummary, true);
+    defaultYearsAgo = typedArray.getInt(R.styleable.DatePickerPreference_defaultYearsAgo, -1);
     defaultYear = typedArray.getInt(R.styleable.DatePickerPreference_defaultYear, -1);
     defaultMonthOfYear = typedArray.getInt(R.styleable.DatePickerPreference_defaultMonthOfYear, -1);
     defaultDayOfMonth = typedArray.getInt(R.styleable.DatePickerPreference_defaultDayOfMonth, -1);
     dateFormat = typedArray.getInt(R.styleable.DatePickerPreference_dateFormat, DATE_FORMAT_INHERIT);
+    typedArray.recycle();
   }
 
   public DatePickerPreference(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -63,8 +61,7 @@ public class DatePickerPreference extends DialogPreference {
     this(context, null);
   }
 
-  public static int calculateValue(int year, int monthOfYear, int dayOfMonth) {
-    LocalDate date = new LocalDate(year, monthOfYear, dayOfMonth);
+  public static int calculateValue(LocalDate date) {
     return Days.daysBetween(EPOCH, date).getDays();
   }
 
@@ -84,38 +81,42 @@ public class DatePickerPreference extends DialogPreference {
     return getDate().getDayOfMonth();
   }
 
-  public void setValue(int year, int monthOfYear, int dayOfMonth) {
-    setValue(calculateValue(year, monthOfYear, dayOfMonth));
+  public void setValue(LocalDate date) {
+    setValue(calculateValue(date));
   }
 
   public void setValue(int value) {
     this.value = value;
     if (dateAsSummary) {
-      DateTimeFormatter formatter;
       switch (dateFormat) {
         case DATE_FORMAT_MONTH_DAY_YEAR:
-          formatter = MONTH_DAY_YEAR_FORAMT;
+          setSummary(MONTH_DAY_YEAR_FORAMT.print(getDate()));
           break;
         case DATE_FORMAT_DAY_MONTH_YEAR:
-          formatter = DAY_MONTH_YEAR_FORAMT;
+          setSummary(DAY_MONTH_YEAR_FORAMT.print(getDate()));
           break;
         case DATE_FORMAT_INHERIT:
         default:
-          formatter = DAY_MONTH_YEAR_FORAMT;
-          // TODO: fix
-          //formatter = getTimeFormat(getContext());
+          Date date = getDate().toDateTimeAtStartOfDay().toDate();
+          setSummary(DateFormat.getDateFormat(getContext()).format(date));
           break;
       }
-      setSummary(formatter.print(getDate()));
     }
     persistInt(value);
   }
 
   @Override
   protected Object onGetDefaultValue(TypedArray a, int index) {
+    if (defaultYear > -1 && defaultYearsAgo > -1) {
+      throw new IllegalArgumentException("Cannot specify both defaultYear and defaultYearsAgo");
+    }
     int defaultValue = 0;
     if (defaultYear > -1 && defaultMonthOfYear > -1 && defaultDayOfMonth > -1) {
-      defaultValue = calculateValue(defaultYear, defaultMonthOfYear, defaultDayOfMonth);
+      LocalDate defaultDate = new LocalDate(defaultYear, defaultMonthOfYear + 1, defaultDayOfMonth);
+      defaultValue = calculateValue(defaultDate);
+    } else if (defaultYearsAgo > -1) {
+      LocalDate defaultDate = LocalDate.now().minusYears(defaultYearsAgo);
+      defaultValue = calculateValue(defaultDate);
     }
     return a.getInt(index, defaultValue);
   }
@@ -137,6 +138,7 @@ public class DatePickerPreference extends DialogPreference {
     savedState.defaultDayOfMonth = defaultDayOfMonth;
     savedState.defaultMonthOfYear = defaultMonthOfYear;
     savedState.defaultYear = defaultYear;
+    savedState.defaultYearsAgo = defaultYearsAgo;
     savedState.value = value;
     return savedState;
   }
@@ -154,6 +156,7 @@ public class DatePickerPreference extends DialogPreference {
     defaultDayOfMonth = savedState.defaultDayOfMonth;
     defaultMonthOfYear = savedState.defaultMonthOfYear;
     defaultYear = savedState.defaultYear;
+    defaultYearsAgo = savedState.defaultYearsAgo;
     value = savedState.value;
   }
 
@@ -164,6 +167,7 @@ public class DatePickerPreference extends DialogPreference {
     private int defaultDayOfMonth;
     private int defaultMonthOfYear;
     private int defaultYear;
+    private int defaultYearsAgo;
     private int value;
 
     @SuppressLint("ParcelClassLoader")
@@ -174,6 +178,7 @@ public class DatePickerPreference extends DialogPreference {
       defaultDayOfMonth = source.readInt();
       defaultMonthOfYear = source.readInt();
       defaultYear = source.readInt();
+      defaultYearsAgo = source.readInt();
       value = source.readInt();
     }
 
@@ -188,6 +193,7 @@ public class DatePickerPreference extends DialogPreference {
       dest.writeInt(defaultDayOfMonth);
       dest.writeInt(defaultMonthOfYear);
       dest.writeInt(defaultYear);
+      dest.writeInt(defaultYearsAgo);
       dest.writeInt(value);
     }
 
